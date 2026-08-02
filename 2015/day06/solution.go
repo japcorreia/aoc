@@ -66,8 +66,8 @@ func createPoint(p string) (point, error) {
 }
 
 func applyGridState[T any](grid *T, start point, end point, op int) {
-	for i := start.x; i < end.x+1; i++ {
-		for j := start.y; j < end.y+1; j++ {
+	for i := start.x; i <= end.x; i++ {
+		for j := start.y; j <= end.y; j++ {
 			switch g := any(grid).(type) {
 			case *Grid:
 				g[i][j] = nextState(g[i][j], op)
