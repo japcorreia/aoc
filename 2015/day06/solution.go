@@ -8,72 +8,88 @@ import (
 	"strings"
 )
 
-const size = 1000
+const gridSize = 1000
 
 type point struct {
 	x int
 	y int
 }
 
-type Grid [size][size]bool
-type BGrid [size][size]int
+type Grid [gridSize][gridSize]bool
+type BGrid [gridSize][gridSize]int
 
-/* Operations:
-* 0 - turn off
-* 1 - turn on
-* 2 - toogle
- */
+type operation uint8
 
-func nextState(state bool, op int) bool {
+const (
+	off operation = iota
+	on
+	toggle
+)
+
+func nextState(state bool, op operation) bool {
 	switch op {
-	case 0:
+	case off:
 		return false
-	case 1:
+	case on:
 		return true
-	case 2:
+	case toggle:
 		return !state
 	default:
-		return false
+		return state
 	}
 }
 
-func nextBrightness(brightness int, op int) int {
+func nextBrightness(brightness int, op operation) int {
 	switch op {
-	case 0:
+	case off:
 		if brightness > 0 {
 			return brightness - 1
 		}
 		return 0
-	case 1:
+	case on:
 		return brightness + 1
-	case 2:
+	case toggle:
 		return brightness + 2
 	default:
 		return brightness
 	}
 }
-func createPoint(p string) (point, error) {
-	coords := strings.Split(p, ",")
-	px, err := strconv.Atoi(coords[0])
-	if err != nil {
-		return point{}, err
+
+func createPoint(value string) (point, error) {
+	coords := strings.Split(value, ",")
+	if len(coords) != 2 {
+		return point{}, fmt.Errorf("invalid point %q", value)
 	}
-	py, err := strconv.Atoi(coords[1])
+
+	x, err := strconv.Atoi(coords[0])
 	if err != nil {
-		return point{}, err
+		return point{}, fmt.Errorf("invalid x coordinate %q: %w", coords[0], err)
 	}
-	return point{x: px, y: py}, nil
+
+	y, err := strconv.Atoi(coords[1])
+	if err != nil {
+		return point{}, fmt.Errorf("invalid y coordinate %q: %w", coords[1], err)
+	}
+
+	if x < 0 || x >= gridSize || y < 0 || y >= gridSize {
+		return point{}, fmt.Errorf("point outside grid: %d,%d", x, y)
+	}
+
+	return point{x: x, y: y}, nil
 }
 
-func applyGridState[T any](grid *T, start point, end point, op int) {
-	for i := start.x; i <= end.x; i++ {
-		for j := start.y; j <= end.y; j++ {
-			switch g := any(grid).(type) {
-			case *Grid:
-				g[i][j] = nextState(g[i][j], op)
-			case *BGrid:
-				g[i][j] = nextBrightness(g[i][j], op)
-			}
+func applyState(grid *Grid, start, end point, op operation) {
+	for y := start.y; y <= end.y; y++ {
+		for x := start.x; x <= end.x; x++ {
+			grid[y][x] = nextState(grid[y][x], op)
+		}
+	}
+}
+
+func applyBrightness(grid *BGrid, start, end point, op operation) {
+	for y := start.y; y <= end.y; y++ {
+		for x := start.x; x <= end.x; x++ {
+			grid[y][x] = nextBrightness(grid[y][x], op)
 		}
 	}
 }
@@ -83,7 +99,7 @@ func solve1(data string) (int, error) {
 	commands := strings.Split(data, "\n")
 	var grid Grid
 	for _, com := range commands {
-		args := strings.Split(com, " ")
+		args := strings.Fields(com)
 		switch args[0] {
 		case "turn":
 			switch args[1] {
@@ -96,7 +112,7 @@ func solve1(data string) (int, error) {
 				if err != nil {
 					return -1, err
 				}
-				applyGridState(&grid, start, end, 0)
+				applyState(&grid, start, end, off)
 			case "on":
 				start, err := createPoint(args[2])
 				if err != nil {
@@ -106,7 +122,7 @@ func solve1(data string) (int, error) {
 				if err != nil {
 					return -1, err
 				}
-				applyGridState(&grid, start, end, 1)
+				applyState(&grid, start, end, on)
 			}
 		case "toggle":
 			start, err := createPoint(args[1])
@@ -117,14 +133,14 @@ func solve1(data string) (int, error) {
 			if err != nil {
 				return -1, err
 			}
-			applyGridState(&grid, start, end, 2)
+			applyState(&grid, start, end, toggle)
 
 		}
 	}
 
-	for i := 0; i < size; i++ {
-		for j := 0; j < size; j++ {
-			if grid[j][i] {
+	for y := 0; y < gridSize; y++ {
+		for x := 0; x < gridSize; x++ {
+			if grid[y][x] {
 				result++
 			}
 		}
@@ -138,7 +154,7 @@ func solve2(data string) (int, error) {
 	commands := strings.Split(data, "\n")
 	var grid BGrid
 	for _, com := range commands {
-		args := strings.Split(com, " ")
+		args := strings.Fields(com)
 		switch args[0] {
 		case "turn":
 			switch args[1] {
@@ -151,7 +167,7 @@ func solve2(data string) (int, error) {
 				if err != nil {
 					return -1, err
 				}
-				applyGridState(&grid, start, end, 0)
+				applyBrightness(&grid, start, end, off)
 			case "on":
 				start, err := createPoint(args[2])
 				if err != nil {
@@ -161,7 +177,7 @@ func solve2(data string) (int, error) {
 				if err != nil {
 					return -1, err
 				}
-				applyGridState(&grid, start, end, 1)
+				applyBrightness(&grid, start, end, on)
 			}
 		case "toggle":
 			start, err := createPoint(args[1])
@@ -172,14 +188,14 @@ func solve2(data string) (int, error) {
 			if err != nil {
 				return -1, err
 			}
-			applyGridState(&grid, start, end, 2)
+			applyBrightness(&grid, start, end, toggle)
 
 		}
 	}
 
-	for i := 0; i < size; i++ {
-		for j := 0; j < size; j++ {
-			result += grid[j][i]
+	for y := 0; y < gridSize; y++ {
+		for x := 0; x < gridSize; x++ {
+			result += grid[y][x]
 		}
 	}
 
