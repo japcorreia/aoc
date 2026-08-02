@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 func check(err error) {
@@ -16,7 +16,7 @@ func check(err error) {
 func i_min(a, b int) int {
 	if a < b {
 		return a
-	}else {
+	} else {
 		return b
 	}
 }
@@ -34,9 +34,9 @@ func computePresentRibbon(a, b, c int) int {
 
 func solution1(dimsList []string) {
 	totalPaper := 0
-	for i := 0; i < len(dimsList)-1; i++{
+	for i := 0; i < len(dimsList)-1; i++ {
 		dims := strings.Split(dimsList[i], "x")
-		
+
 		l, err := strconv.Atoi(dims[0])
 		check(err)
 		w, err := strconv.Atoi(dims[1])
@@ -48,16 +48,16 @@ func solution1(dimsList []string) {
 		h_l := h * l
 		slack := i_min(i_min(l_w, w_h), h_l)
 		totalPaper += slack + (2 * (l_w + w_h + h_l))
-		
+
 	}
 	fmt.Printf("Solution 1: %d\n", totalPaper)
 }
 
 func solution2(dimsList []string) {
 	totalRibbon := 0
-	for i := 0; i < len(dimsList)-1; i++{
+	for i := 0; i < len(dimsList)-1; i++ {
 		dims := strings.Split(dimsList[i], "x")
-		
+
 		l, err := strconv.Atoi(dims[0])
 		check(err)
 		w, err := strconv.Atoi(dims[1])
@@ -65,14 +65,14 @@ func solution2(dimsList []string) {
 		h, err := strconv.Atoi(dims[2])
 		check(err)
 		presentRibbon := computePresentRibbon(l, w, h)
-		bowRibbon := l*w*h
+		bowRibbon := l * w * h
 		totalRibbon += presentRibbon + bowRibbon
-		
+
 	}
 	fmt.Printf("Solution 2: %d\n", totalRibbon)
 }
 
-func main(){
+func main() {
 	dat, err := os.ReadFile("./input1")
 	check(err)
 	dimsList := strings.Split(string(dat), "\n")

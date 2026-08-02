@@ -2,44 +2,44 @@ package main
 
 import (
 	"bytes"
+	"crypto/md5"
 	"flag"
 	"fmt"
-	"os"
-	"crypto/md5"
 	"io"
+	"os"
 )
 
 var window int = 3 // Because 5 hex means 2 and half bytes
 
-func md5Hash(text string) ([]byte, error){
+func md5Hash(text string) ([]byte, error) {
 	hasher := md5.New()
 	_, err := io.WriteString(hasher, text)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	return hasher.Sum(nil), nil
 }
 
-func solve1(data string) (int, error){
+func solve1(data string) (int, error) {
 
-	for i:=1; true; i++{
+	for i := 1; true; i++ {
 		test := fmt.Sprintf("%s%d", data, i)
 		hash, err := md5Hash(test)
-		if err != nil{
+		if err != nil {
 			return -1, err
 		}
-		if hash[0] == 0 && hash[1] == 0 && hash[2] >> 4 == 0 {
+		if hash[0] == 0 && hash[1] == 0 && hash[2]>>4 == 0 {
 			return i, nil
 		}
 	}
 	return 0, nil
 }
 
-func solve2(data string) (int, error){
-	for i:=1; true; i++{
+func solve2(data string) (int, error) {
+	for i := 1; true; i++ {
 		test := fmt.Sprintf("%s%d", data, i)
 		hash, err := md5Hash(test)
-		if err != nil{
+		if err != nil {
 			return -1, err
 		}
 		if hash[0] == 0 && hash[1] == 0 && hash[2] == 0 {

@@ -7,12 +7,11 @@ import (
 	"strings"
 )
 
-
-func solve1(data string) (int, error){
+func solve1(data string) (int, error) {
 	return 0, nil
 }
 
-func solve2(data string) (int, error){
+func solve2(data string) (int, error) {
 	return 0, nil
 }
 
