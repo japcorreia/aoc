@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 )
 
 
@@ -22,14 +22,14 @@ func run(inputPath string) error {
 		return fmt.Errorf("read input file %q: %w", inputPath, err)
 	}
 
-	data := bytes.TrimSpace(data)
+	trimmedData := strings.TrimSpace(string(data))
 
-	part1, err := solve1(data)
+	part1, err := solve1(trimmedData)
 	if err != nil {
 		return fmt.Errorf("solve part 1: %w", err)
 	}
 
-	part2, err := solve2(data)
+	part2, err := solve2(trimmedData)
 	if err != nil {
 		return fmt.Errorf("solve part 2: %w", err)
 	}

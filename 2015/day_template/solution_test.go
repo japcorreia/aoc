@@ -26,13 +26,13 @@ func TestSolve1(t *testing.T) {
 		{
 			name:     "Empty Path",
 			input:    "",
-			expected: 1,
+			expected: 0,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := solve1([]byte(tt.input))
+			got, err := solve1(tt.input)
 			if err != nil {
 				t.Fatalf("solve1() returned an unexpected error: %v", err)
 			}
@@ -74,7 +74,7 @@ func TestSolve2(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := solve2([]byte(tt.input))
+			got, err := solve2(tt.input)
 			if err != nil {
 				t.Fatalf("solve2() returned an unexpected error: %v", err)
 			}

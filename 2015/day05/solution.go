@@ -10,34 +10,33 @@ import (
 
 // Due to the lack of backreferences support in go, the solution will not use regexp
 func naughtyOrNice1(str string) bool {
-	vowels :=0
+	vowels := 0
 	doubleLetters := 0
-	notAllowed := [4]string {"ab", "cd", "pq", "xy"}
-	
-	for i:=0; i < len(str); i++ {
-		switch str[i]{
-		case 'a', 'e','i','o','u':
+	notAllowed := [4]string{"ab", "cd", "pq", "xy"}
+
+	for i := 0; i < len(str); i++ {
+		switch str[i] {
+		case 'a', 'e', 'i', 'o', 'u':
 			vowels++
 		}
 
-		if i < len(str) - 1{
-			if str[i] == str[i+1] && str[i] >= 'a' && str[i] <= 'z'{
-				doubleLetters++;
+		if i < len(str)-1 {
+			if str[i] == str[i+1] && str[i] >= 'a' && str[i] <= 'z' {
+				doubleLetters++
 			}
 
 			for _, val := range notAllowed {
-				if str[i:i+2] == val{
+				if str[i:i+2] == val {
 					return false
 				}
 			}
 		}
 	}
-	if vowels >= 3 && doubleLetters >=1 {
+	if vowels >= 3 && doubleLetters >= 1 {
 		return true
 	}
 	return false
 }
-
 
 func naughtyOrNice2(str string) bool {
 	pairs := make(map[string]int)
@@ -46,7 +45,7 @@ func naughtyOrNice2(str string) bool {
 	if len(str) > 1 {
 		pairs[str[:2]]++
 	}
-	for i:=1; i < len(str) - 1; i++ {
+	for i := 1; i < len(str)-1; i++ {
 		if str[i-1:i+1] != str[i:i+2] {
 			pairs[str[i:i+2]]++
 		}
@@ -61,10 +60,10 @@ func naughtyOrNice2(str string) bool {
 		}
 	}
 
-	return doublePairs && sameNeighbour >= 1 
+	return doublePairs && sameNeighbour >= 1
 }
 
-func solve1(data string) (int, error){
+func solve1(data string) (int, error) {
 	result := 0
 	strs := strings.Split(data, "\n")
 	for _, str := range strs {
@@ -75,10 +74,10 @@ func solve1(data string) (int, error){
 	return result, nil
 }
 
-func solve2(data string) (int, error){
+func solve2(data string) (int, error) {
 	result := 0
 	strs := strings.Split(data, "\n")
-	for _, str := range strs{
+	for _, str := range strs {
 		if naughtyOrNice2(str) {
 			result++
 		}
