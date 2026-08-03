@@ -83,37 +83,6 @@ func parseInstructions(booklet []string) (map[string]instruction, error) {
 	return circuit, nil
 }
 
-func computeLogicalGates(inst instruction) (uint16, error) {
-	if inst.op == "NOT" {
-		value, ok := parseLiteral(inst.left)
-		if !ok {
-			return 0, fmt.Errorf("error in parsing the value %q", inst.left)
-		}
-		return ^value, nil
-	}
-
-	left, ok := parseLiteral(inst.left)
-	if !ok {
-		return 0, fmt.Errorf("error in parsing the value %q", inst.left)
-	}
-
-	right, ok := parseLiteral(inst.right)
-	if !ok {
-		return 0, fmt.Errorf("error in parsing the value %q", inst.left)
-	}
-	switch inst.op {
-	case "OR":
-		return left | right, nil
-	case "AND":
-		return left & right, nil
-	case "RSHIFT":
-		return left >> right, nil
-	case "LSHIFT":
-		return left << right, nil
-	}
-	return 0, fmt.Errorf("error in parsing the value %q", inst.left)
-}
-
 func parseLiteral(s string) (uint16, bool) {
 	value, err := strconv.ParseUint(s, 10, 16)
 	if err != nil {
@@ -122,103 +91,133 @@ func parseLiteral(s string) (uint16, bool) {
 	return uint16(value), true
 }
 
-func computeWire(wire string, circuit map[string]instruction) uint16 {
-	inst := circuit[wire]
-	switch inst.op {
-	case "ASSIGN":
-		if value, ok := parseLiteral(inst.left); ok {
-			wireCache[wire] = value
-			return value
-		} else if _, exists := wireCache[wire]; exists {
-			return wireCache[wire]
-		} else {
-			return computeWire(inst.left, circuit)
-		}
-
-	case "NOT":
-		var result uint16
-		if _, ok := parseLiteral(inst.left); ok {
-			value, err := computeLogicalGates(inst)
-			if err != nil {
-				panic(err)
-			}
-			result = value
-		} else {
-			if _, exists := wireCache[inst.left]; exists {
-				left := strconv.FormatUint(uint64(wireCache[inst.left]), 10)
-				value, err := computeLogicalGates(instruction{op: inst.op, left: left})
-				if err != nil {
-					panic(err)
-				}
-				result = value
-			} else {
-				left := strconv.FormatUint(uint64(computeWire(inst.left, circuit)), 10)
-				value, err := computeLogicalGates(instruction{op: inst.op, left: left})
-				if err != nil {
-					panic(err)
-				}
-				result = value
-			}
-		}
-		wireCache[wire] = result
-		return result
-
-	case "OR", "AND", "RSHIFT", "LSHIFT":
-		var left, right uint16
-		if value, ok := parseLiteral(inst.left); ok {
-			left = value
-		} else {
-			if _, exists := wireCache[inst.left]; exists {
-				left = wireCache[inst.left]
-			} else {
-				left = computeWire(inst.left, circuit)
-			}
-		}
-
-		if value, ok := parseLiteral(inst.right); ok {
-			right = value
-		} else {
-			if _, exists := wireCache[inst.right]; exists {
-				right = wireCache[inst.right]
-			} else {
-				right = computeWire(inst.right, circuit)
-			}
-		}
-
-		result, err := computeLogicalGates(instruction{op: inst.op, left: strconv.FormatUint(uint64(left), 10), right: strconv.FormatUint(uint64(right), 10)})
-		if err != nil {
-			panic(err)
-		}
-		wireCache[wire] = result
-		return result
-
+func resolve(value string, circuit map[string]instruction) (uint16, error) {
+	if literal, ok := parseLiteral(value); ok {
+		return literal, nil
 	}
-	return 0
+	return computeWire(value, circuit)
 }
 
-func solve1(data string) (uint16, error) {
-	booklet := strings.Split(data, "\n")
-	clear(wireCache)
+func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
+	if value, exists := wireCache[wire]; exists {
+		return value, nil
+	}
+
+	inst, exists := circuit[wire]
+	if !exists {
+		return 0, fmt.Errorf("wire %q has no instruction", wire)
+	}
+
 	var result uint16
+
+	switch inst.op {
+	case "ASSIGN":
+		value, err := resolve(inst.left, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		result = value
+
+	case "NOT":
+		value, err := resolve(inst.left, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		result = ^value
+
+	case "AND":
+		left, err := resolve(inst.left, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		right, err := resolve(inst.right, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		result = left & right
+
+	case "OR":
+		left, err := resolve(inst.left, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		right, err := resolve(inst.right, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		result = left | right
+
+	case "LSHIFT":
+		left, err := resolve(inst.left, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		right, err := resolve(inst.right, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		result = left << right
+
+	case "RSHIFT":
+		left, err := resolve(inst.left, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		right, err := resolve(inst.right, circuit)
+		if err != nil {
+			return 0, err
+		}
+
+		result = left >> right
+
+	default:
+		return 0, fmt.Errorf(
+			"wire %q has unknown operation %q",
+			wire,
+			inst.op,
+		)
+	}
+
+	wireCache[wire] = result
+	return result, nil
+}
+
+func solve1(data string, wire string) (uint16, error) {
+	booklet := strings.Split(data, "\n")
+	
 	circuit, err := parseInstructions(booklet)
 	if err != nil {
 		return 0, err
 	}
-	result = computeWire("a", circuit)
-	return result, nil
+	
+	clear(wireCache)
+	return  computeWire(wire, circuit)
 }
 
 func solve2(data string, wire string, overload uint16) (uint16, error) {
 	booklet := strings.Split(data, "\n")
-	clear(wireCache)
-	wireCache[wire] = overload
-	var result uint16
 	circuit, err := parseInstructions(booklet)
 	if err != nil {
 		return 0, err
 	}
-	result = computeWire("a", circuit)
-	return result, nil
+
+	circuit[wire] = instruction{
+		op: "ASSIGN",
+		left: strconv.FormatUint(uint64(overload), 10),
+	}
+
+	clear(wireCache)
+	
+	return computeWire("a", circuit) 
 }
 
 func run(inputPath string) error {
@@ -229,7 +228,7 @@ func run(inputPath string) error {
 
 	trimmedData := strings.TrimSpace(string(data))
 
-	part1, err := solve1(trimmedData)
+	part1, err := solve1(trimmedData, "a")
 	if err != nil {
 		return fmt.Errorf("solve part 1: %w", err)
 	}
