@@ -14,8 +14,6 @@ type instruction struct {
 	right string
 }
 
-var wireCache = make(map[string]uint16)
-
 func isBinaryOp(op string) bool {
 	return op == "AND" || op == "OR" || op == "RSHIFT" || op == "LSHIFT"
 }
@@ -91,14 +89,14 @@ func parseLiteral(s string) (uint16, bool) {
 	return uint16(value), true
 }
 
-func resolve(value string, circuit map[string]instruction) (uint16, error) {
+func resolve(value string, circuit map[string]instruction, wireCache map[string]uint16) (uint16, error) {
 	if literal, ok := parseLiteral(value); ok {
 		return literal, nil
 	}
-	return computeWire(value, circuit)
+	return computeWire(value, circuit, wireCache)
 }
 
-func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
+func computeWire(wire string, circuit map[string]instruction, wireCache map[string]uint16) (uint16, error) {
 	if value, exists := wireCache[wire]; exists {
 		return value, nil
 	}
@@ -112,7 +110,7 @@ func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
 
 	switch inst.op {
 	case "ASSIGN":
-		value, err := resolve(inst.left, circuit)
+		value, err := resolve(inst.left, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
@@ -120,7 +118,7 @@ func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
 		result = value
 
 	case "NOT":
-		value, err := resolve(inst.left, circuit)
+		value, err := resolve(inst.left, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
@@ -128,12 +126,12 @@ func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
 		result = ^value
 
 	case "AND":
-		left, err := resolve(inst.left, circuit)
+		left, err := resolve(inst.left, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
 
-		right, err := resolve(inst.right, circuit)
+		right, err := resolve(inst.right, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
@@ -141,12 +139,12 @@ func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
 		result = left & right
 
 	case "OR":
-		left, err := resolve(inst.left, circuit)
+		left, err := resolve(inst.left, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
 
-		right, err := resolve(inst.right, circuit)
+		right, err := resolve(inst.right, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
@@ -154,12 +152,12 @@ func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
 		result = left | right
 
 	case "LSHIFT":
-		left, err := resolve(inst.left, circuit)
+		left, err := resolve(inst.left, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
 
-		right, err := resolve(inst.right, circuit)
+		right, err := resolve(inst.right, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
@@ -167,12 +165,12 @@ func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
 		result = left << right
 
 	case "RSHIFT":
-		left, err := resolve(inst.left, circuit)
+		left, err := resolve(inst.left, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
 
-		right, err := resolve(inst.right, circuit)
+		right, err := resolve(inst.right, circuit, wireCache)
 		if err != nil {
 			return 0, err
 		}
@@ -191,33 +189,32 @@ func computeWire(wire string, circuit map[string]instruction) (uint16, error) {
 	return result, nil
 }
 
-func solve1(data string, wire string) (uint16, error) {
+func solve1(data string, targetWire string) (uint16, error) {
 	booklet := strings.Split(data, "\n")
-	
+
 	circuit, err := parseInstructions(booklet)
 	if err != nil {
 		return 0, err
 	}
-	
-	clear(wireCache)
-	return  computeWire(wire, circuit)
+
+	cache := make(map[string]uint16)
+	return computeWire(targetWire, circuit, cache)
 }
 
-func solve2(data string, wire string, overload uint16) (uint16, error) {
+func solve2(data string, targetWire string, overrideWire string, overload uint16) (uint16, error) {
 	booklet := strings.Split(data, "\n")
 	circuit, err := parseInstructions(booklet)
 	if err != nil {
 		return 0, err
 	}
 
-	circuit[wire] = instruction{
-		op: "ASSIGN",
+	circuit[overrideWire] = instruction{
+		op:   "ASSIGN",
 		left: strconv.FormatUint(uint64(overload), 10),
 	}
 
-	clear(wireCache)
-	
-	return computeWire("a", circuit) 
+	cache := make(map[string]uint16)
+	return computeWire(targetWire, circuit, cache)
 }
 
 func run(inputPath string) error {
@@ -233,7 +230,7 @@ func run(inputPath string) error {
 		return fmt.Errorf("solve part 1: %w", err)
 	}
 
-	part2, err := solve2(trimmedData, "b", part1)
+	part2, err := solve2(trimmedData, "a", "b", part1)
 	if err != nil {
 		return fmt.Errorf("solve part 2: %w", err)
 	}
