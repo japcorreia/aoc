@@ -19,6 +19,9 @@ func isBinaryOp(op string) bool {
 }
 
 func parseInstructions(booklet []string) (map[string]instruction, error) {
+	if len(booklet) == 1 && len(booklet[0]) == 0 {
+		return nil, fmt.Errorf("empty booklet")
+	}
 	circuit := make(map[string]instruction)
 	for lineNumber, line := range booklet {
 		args := strings.Fields(line)
