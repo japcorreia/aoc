@@ -1,24 +1,24 @@
 package main
 
-import 	"testing"
+import "testing"
 
 func TestSolve1(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		expected uint16
-		expectedError  string
+		name          string
+		input         string
+		expected      uint16
+		expectedError string
 	}{
 		{
-			name:     "Test1",
-			input:    "123 -> x\n456 -> y\nx AND y -> d\nx OR y -> e\nx LSHIFT 2 -> f\ny RSHIFT 2 -> g\nNOT x -> h\nNOT y -> i",
-			expected: 65412,
-			expectedError:  "",
+			name:          "Test1",
+			input:         "123 -> x\n456 -> y\nx AND y -> d\nx OR y -> e\nx LSHIFT 2 -> f\ny RSHIFT 2 -> g\nNOT x -> h\nNOT y -> i",
+			expected:      65412,
+			expectedError: "",
 		},
 		{
-			name:     "Empty Booklet",
-			input:    "",
-			expected: 0,
+			name:          "Empty Booklet",
+			input:         "",
+			expected:      0,
 			expectedError: "empty booklet",
 		},
 	}
@@ -26,7 +26,7 @@ func TestSolve1(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := solve1(tt.input, "h")
-			if err != nil && err.Error() != tt.expectedError{
+			if err != nil && err.Error() != tt.expectedError {
 				t.Fatalf("solve1() returned an unexpected error: %v", err)
 			}
 
@@ -39,21 +39,21 @@ func TestSolve1(t *testing.T) {
 
 func TestSolve2(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		expected uint16
+		name          string
+		input         string
+		expected      uint16
 		expectedError string
 	}{
 		{
-			name:     "Test 2",
-			input:    "123 -> x\n456 -> y\nx AND y -> d\nx OR y -> e\nx LSHIFT 2 -> f\ny RSHIFT 2 -> g\nNOT x -> h\nNOT y -> i",
-			expected: 123,
+			name:          "Test 2",
+			input:         "123 -> x\n456 -> y\nx AND y -> d\nx OR y -> e\nx LSHIFT 2 -> f\ny RSHIFT 2 -> g\nNOT x -> h\nNOT y -> i",
+			expected:      123,
 			expectedError: "",
 		},
 		{
-			name:     "Empty Booklet",
-			input:    "",
-			expected: 0,
+			name:          "Empty Booklet",
+			input:         "",
+			expected:      0,
 			expectedError: "empty booklet",
 		},
 	}
@@ -61,7 +61,7 @@ func TestSolve2(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := solve2(tt.input, "i", "y", 65412)
-			if err != nil && err.Error() != tt.expectedError{
+			if err != nil && err.Error() != tt.expectedError {
 				t.Fatalf("solve2() returned an unexpected error: %v", err)
 			}
 
