@@ -80,7 +80,7 @@ func TestSolve2(t *testing.T) {
 			}
 
 			if got != tt.expected {
-				t.Errorf("solve2() = %d; exected %d", got, tt.expected)
+				t.Errorf("solve2() = %d; expected %d", got, tt.expected)
 			}
 		})
 	}
