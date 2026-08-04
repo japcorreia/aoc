@@ -8,21 +8,23 @@ import (
 	"strings"
 )
 
-func lookAndSay(in string) (string, error) {
-	if len(in) == 0 {
-		return in, fmt.Errorf("empty input")
+func lookAndSay(input string) (string, error) {
+	if len(input) == 0 {
+		return "", fmt.Errorf("empty input")
 	}
-	output := make([]byte, 0)
-	for i := 0; i < len(in); i++ {
-		currentChar := in[i]
+
+	output := make([]byte, 0, len(input)<<1)
+
+	for i := 0; i < len(input); {
+		current := input[i]
 		count := 1
-		for i < len(in)-1 && in[i] == in[i+1] {
+		i++
+		for i < len(input) && current == input[i] {
 			count++
 			i++
 		}
-		c := []byte(strconv.Itoa(count))
-		output = append(output, c...)
-		output = append(output, currentChar)
+		output = strconv.AppendInt(output, int64(count), 10)
+		output = append(output, current)
 	}
 	return string(output), nil
 }
