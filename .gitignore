@@ -30,3 +30,17 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Vim
+# Swap files (created during active editing)
+.*.sw[a-p]
+*.un~
+
+# Session and state files
+Session.vim
+.netrwhist
+
+# Backup and undo files
+*~
+*.bak
+
